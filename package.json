@@ -1,0 +1,20 @@
+{
+  "name": "bot_assignment",
+  "version": "1.0.0",
+  "description": "Persist_Venture_Assignment",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "axios": "^1.7.9",
+    "crypto": "^1.0.1",
+    "express": "^4.21.2",
+    "node-telegram-bot-api": "^0.66.0",
+    "prisma": "^6.1.0",
+    "telegram-bot-api": "^2.0.1"
+  }
+}
