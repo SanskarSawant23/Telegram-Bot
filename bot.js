@@ -12,6 +12,7 @@ const app = express();
 const CLIENT_ID = 'lzFzi1Zxv1YNhWLcKQVodW_eL1nUustZvjyLwZukq0U';
 const CLIENT_SECRET = 'fLaxNXpPSDjYYIf8YFmlmTR898o1nLedisVI3vFyiwn-bivTH8QritBjjsCqysO4a5mcRdholdD1S0a32n-imQ';
 const HUBSTAFF_API_URL = 'https://api.hubstaff.com/v2';
+const message = "🔒<b> This command is intended for group use only.</b>"
 
 
 
@@ -27,10 +28,10 @@ const checkMember = async (chatId, userId )=>{
         const chatMember = await bot.getChatMember(groupId, userId);
         if(['member','administrator','creator'].includes(chatMember.status)){
             // bot.sendMessage(chatId,"your are part of the group! you can access this endpoint")
-            return false;
+            return true;
         }else{
             bot.sendMessage(chatId,"Your are not part of the group." )
-            return true;
+            return false;
         }
     } catch(error){
         console.error("error checking membership", error);
@@ -45,16 +46,16 @@ bot.onText(/\/help/, (msg) => {
 <b>👋 Welcome to PV Operations Bot!</b>
 <i>Here are the available commands:</i>
 
-- <code>/start</code> - <span >Displays the start message</span>
-- <code>/dailyupdate</code> - <span >Submit your daily update</span>
-- <code>/leave</code> - <span >Mark yourself as on leave</span>
-- <code>/help</code> - <span >Display this help message</span>
-- <code>/hubstaff</code> - <span >Link Telegram with Hubstaff</span>
-- <code>/addtask</code> - <span >Add new task on Hubstaff</span>
-- <code>/listtask</code> - <span >List all Hubstaff active tasks</span>
-- <code>/stats</code> - <span >Display Hubstaff stats</span>
+- <code>/start</code> - Displays the start message
+- <code>/dailyupdate</code> - Submit your daily update
+- <code>/leave</code> - Mark yourself as on leave
+- <code>/help</code> - Display this help message
+- <code>/hubstaff</code> - Link Telegram with Hubstaff
+- <code>/addtask</code> - Add new task on Hubstaff
+- <code>/listtask</code> - List all Hubstaff active tasks
+- <code>/stats</code> - Display Hubstaff stats
     ↳ Advanced: <code>/stats @User [today|yesterday|week|lastweek|month]</code>
-- <code>/feedback</code> - <span >Give feedback</span>
+- <code>/feedback</code> - Give feedback
 
 <i>Type any command to get started!</i>`;
 
@@ -77,55 +78,122 @@ bot.onText(/\/start/, (msg)=>{
 
 })
 
-bot.onText(/\/leave/, async(msg)=>{
+
+bot.onText(/\/leave/, async (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
-    if(checkMember(chatId,userId)){
+
+    const isMember = await checkMember(chatId, userId); 
+    if (!isMember) {
+        bot.sendMessage(chatId, message, {parse_mode:'HTML'})
+        return;} // If the user is not a member, stop execution.
+
+    try {
+        // Check if the user already exists in the `User` table
         let user = await prisma.user.findUnique({
-            where: { telegramId: userId.toString() }
+            where: { telegramId: userId.toString() },
         });
-    
+
         if (!user) {
-            // Create a new user if not found
+            // Create a new user with leave marked as `true`
             user = await prisma.user.create({
                 data: {
                     telegramId: userId.toString(),
-                    feedback: null,
-                    leave: true, // Mark the user as on leave
+                    leave: true,
                 },
             });
         } else {
-            // Update the user's leave status
+            // Update the `leave` status to `true` for an existing user
             user = await prisma.user.update({
                 where: { telegramId: userId.toString() },
                 data: { leave: true },
             });
         }
-    
+
         bot.sendMessage(chatId, "You have been marked as on leave.");
+    } catch (error) {
+        console.error("Error updating leave status:", error.message);
+        bot.sendMessage(chatId, "An error occurred while updating your leave status. Please try again.");
     }
-})
+});
 
 
 
 
-bot.onText(/\/dailyupdate/, (msg) =>{
+bot.onText(/\/dailyupdate/, async (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
-    checkMember(chatId, userId);
-   
-})
 
-bot.onText(/\/leave/, (msg) =>{
-    const chatId = msg.chat.id;
-    const userId = msg.from.id;
-    checkMember(chatId, userId)
-})
+    const isMember = await checkMember(chatId, userId);
+    if (!isMember) {
+        bot.sendMessage(chatId, message, {parse_mode:'HTML'})
+        return;
+    }// If the user is not a member, stop execution.
+
+    try {
+        // Check if the user exists in the `User` table
+        let user = await prisma.user.findUnique({
+            where: { telegramId: userId.toString() },
+        });
+
+        if (!user) {
+            // If the user doesn't exist, prompt them to register first
+            bot.sendMessage(chatId, "You are not registered yet. Please use the bot and try again.");
+            return;
+        }
+
+        // Ask the user for their daily update
+        bot.sendMessage(chatId, "Please type your daily update. To cancel, type /cancel.");
+
+        // Listen for the user's next message to capture their update
+        const onMessageListener = async (updateMsg) => {
+            if (updateMsg.from.id === userId) {
+                if (updateMsg.text === '/cancel') {
+                    bot.sendMessage(chatId, "Daily update process canceled.");
+                    bot.removeListener('message', onMessageListener); // Remove the listener
+                    return;
+                }
+
+                const dailyUpdateText = updateMsg.text;
+
+                // Store the daily update in the database
+                try {
+                    await prisma.dailyUpdate.create({
+                        data: {
+                            userId: user.id, // Link the daily update to the user
+                            update: dailyUpdateText,
+                        },
+                    });
+
+                    bot.sendMessage(chatId, "Your daily update has been saved. Thank you!");
+                } catch (error) {
+                    console.error("Error saving daily update:", error.message);
+                    bot.sendMessage(chatId, "An error occurred while saving your update. Please try again.");
+                }
+
+                bot.removeListener('message', onMessageListener); // Remove the listener after saving
+            }
+        };
+
+        bot.on('message', onMessageListener); // Add the listener for user messages
+    } catch (error) {
+        console.error("Error in dailyupdate command:", error.message);
+        bot.sendMessage(chatId, "An error occurred. Please try again.");
+    }
+});
+
+
+
 bot.onText(/\/feedback/, async (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
 
     // Ask for feedback
+    const isMember = await checkMember(chatId, userId);
+    if(!isMember){
+        bot.sendMessage(chatId, message, {parse_mode:'HTML'})
+        return;
+    }
     bot.sendMessage(chatId, "Please type your feedback. To cancel, type /cancel.");
     
     // Store user feedback after they type it

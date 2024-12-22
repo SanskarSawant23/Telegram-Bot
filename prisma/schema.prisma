@@ -14,10 +14,35 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  telegramId String  @unique
-  feedback  String?
-  leave     Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int       @id @default(autoincrement())
+  telegramId String    @unique
+  leave      Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  feedback   Feedback[]
+  dailyUpdates DailyUpdate[]
 }
+
+
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  feedback  String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+
+model DailyUpdate {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  update     String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+
+
