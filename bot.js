@@ -5,7 +5,7 @@ const crypto = require('crypto')
 const axios = require('axios')
 
 const {PrismaClient} = require('@prisma/client');
-const { check } = require("prisma");
+
 const prisma = new PrismaClient();
 const app = express();
 
@@ -45,16 +45,16 @@ bot.onText(/\/help/, (msg) => {
 <b>👋 Welcome to PV Operations Bot!</b>
 <i>Here are the available commands:</i>
 
-- <code>/start</code> - <span class="tg-spoiler">Displays the start message</span>
-- <code>/dailyupdate</code> - <span class="tg-spoiler">Submit your daily update</span>
-- <code>/leave</code> - <span class="tg-spoiler">Mark yourself as on leave</span>
-- <code>/help</code> - <span class="tg-spoiler">Display this help message</span>
-- <code>/hubstaff</code> - <span class="tg-spoiler">Link Telegram with Hubstaff</span>
-- <code>/addtask</code> - <span class="tg-spoiler">Add new task on Hubstaff</span>
-- <code>/listtask</code> - <span class="tg-spoiler">List all Hubstaff active tasks</span>
-- <code>/stats</code> - <span class="tg-spoiler">Display Hubstaff stats</span>
+- <code>/start</code> - <span >Displays the start message</span>
+- <code>/dailyupdate</code> - <span >Submit your daily update</span>
+- <code>/leave</code> - <span >Mark yourself as on leave</span>
+- <code>/help</code> - <span >Display this help message</span>
+- <code>/hubstaff</code> - <span >Link Telegram with Hubstaff</span>
+- <code>/addtask</code> - <span >Add new task on Hubstaff</span>
+- <code>/listtask</code> - <span >List all Hubstaff active tasks</span>
+- <code>/stats</code> - <span >Display Hubstaff stats</span>
     ↳ Advanced: <code>/stats @User [today|yesterday|week|lastweek|month]</code>
-- <code>/feedback</code> - <span class="tg-spoiler">Give feedback</span>
+- <code>/feedback</code> - <span >Give feedback</span>
 
 <i>Type any command to get started!</i>`;
 
@@ -107,15 +107,7 @@ bot.onText(/\/leave/, async(msg)=>{
 })
 
 
-// bot.on('message', (msg)=>{
-//     console.log(msg);
-//     const chatid = msg.chat.id;
-//     const chatTitle = msg.chat.title;
 
-//     //console.log(`Chat ID: ${chatid}, Group Name: ${chatTitle || 'N/A'}`);
-
-//     bot.sendMessage(chatid, `This group's chat ID is: ${chatid}`);
-// })
 
 bot.onText(/\/dailyupdate/, (msg) =>{
     const chatId = msg.chat.id;
@@ -172,56 +164,7 @@ bot.onText(/\/feedback/, async (msg) => {
 
 
 
- // Store user states temporarily for linking process
-
-// Hubstaff API credentials
-
-
-// Handle /hubstaff command
-
-
-// Handle user messages to get their email
-// bot.on('message', (msg) => {
-//     console.log("Inside message handler");
-//     const chatId = msg.chat.id;
-//     const userId = msg.from.id;
-
-//     // Check if msg.text exists first
-//     if (!msg.text) {
-//         console.log('Non-text message received');
-//         return;
-//     }
-
-//     // Now safely check for commands
-//     if (msg.text.startsWith('/')) {
-//         console.log('Command detected, ignoring in message handler.');
-//         return;
-//     }
-
-//     console.log("Non-command message received:", msg.text);
-
-//     // Find the user state
-//     const state = Object.keys(user).find(
-//         (key) => user[key].telegramId === userId && user[key].status === 'awaiting_email'
-//     );
-
-//     if (state) {
-//         console.log(`User in 'awaiting_email' state: ${state}`);
-//         const userEmail = msg.text;
-
-//         // Save the email and update user state
-//         user[state].email = userEmail;
-//         user[state].status = 'email_received';
-
-//         console.log(`Email received from user: ${userEmail}`);
-
-//         // Validate email with Hubstaff
-//         validateHubstaffEmail(userEmail, chatId, state);
-//     } else {
-//         console.log("No user state found. Sending default response.");
-//         bot.sendMessage(chatId, "I didn't understand that. If you need help, type /help.");
-//     }
-// });
+ 
 
 
 
