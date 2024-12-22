@@ -72,7 +72,8 @@ bot.onText(/\/help/, (msg) => {
     });
 });
 bot.onText(/\/start/, (msg)=>{
-   bot.sendMessage(msg.chat.id, ` simplly type /help to get all the commands`)
+    const message = "👋<b> Welcome to the PV Operations Bot!</b>🔹 Need assistance? Simply type /help to see all available commands."
+   bot.sendMessage(msg.chat.id, message, {parse_mode:"HTML"});
 
 })
 
