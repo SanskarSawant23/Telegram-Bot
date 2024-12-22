@@ -3,9 +3,7 @@ const TelegramBot = require("node-telegram-bot-api");
 const express = require('express')
 const crypto = require('crypto')
 const axios = require('axios')
-
 const {PrismaClient} = require('@prisma/client');
-
 const prisma = new PrismaClient();
 const app = express();
 
